@@ -35,10 +35,10 @@ Saya memulai dengan meluncurkan sebuah *instance* EC2 baru dengan konfigurasi be
 * **Instance Type:** `t2.micro` (Free tier eligible)
 * **Key Pair:** `aws-project1-key` (dibuat baru dan disimpan dengan aman)
 
-![Konfigurasi Nama Server](Screenshot 2025-10-26 012900.png)
-![Konfigurasi OS Ubuntu](Screenshot 2025-10-26 012933.png)
-![Konfigurasi Instance Type t2.micro](Screenshot 2025-10-26 013020.png)
-![Konfigurasi Key Pair](Screenshot 2025-10-26 013120.png)
+![Konfigurasi Nama Server](Screenshot%202025-10-26%20012900.png)
+![Konfigurasi OS Ubuntu](Screenshot%202025-10-26%20012933.png)
+![Konfigurasi Instance Type t2.micro](Screenshot%202025-10-26%20013020.png)
+![Konfigurasi Key Pair](Screenshot%202025-10-26%20013120.png)
 
 * #### Konfigurasi Firewall (Security Group)
 Bagian terpenting adalah konfigurasi *Security Group*. Untuk tujuan proyek ini, saya **sengaja membuat aturan yang sangat tidak aman** agar bisa dianalisis nanti.
