@@ -35,10 +35,10 @@ Saya memulai dengan meluncurkan sebuah *instance* EC2 baru dengan konfigurasi be
 * **Instance Type:** `t2.micro` (Free tier eligible)
 * **Key Pair:** `aws-project1-key` (dibuat baru dan disimpan dengan aman)
 
-![Konfigurasi Nama Server](Screenshot%202025-10-26%20012900.png)
-![Konfigurasi OS Ubuntu](Screenshot%202025-10-26%20012933.png)
-![Konfigurasi Instance Type t2.micro](Screenshot%202025-10-26%20013020.png)
-![Konfigurasi Key Pair](Screenshot%202025-10-26%20013120.png)
+![Konfigurasi Nama Server](./Screenshot%202025-10-26%20012900.png)
+![Konfigurasi OS Ubuntu](./Screenshot%202025-10-26%20012933.png)
+![Konfigurasi Instance Type t2.micro](./Screenshot%202025-10-26%20013020.png)
+![Konfigurasi Key Pair](./Screenshot%202025-10-26%20013120.png)
 
 * #### Konfigurasi Firewall (Security Group)
 Bagian terpenting adalah konfigurasi *Security Group*. Untuk tujuan proyek ini, saya **sengaja membuat aturan yang sangat tidak aman** agar bisa dianalisis nanti.
@@ -49,8 +49,8 @@ Bagian terpenting adalah konfigurasi *Security Group*. Untuk tujuan proyek ini, 
     2.  `Type: HTTP` (Port 80), `Source: Anywhere (0.0.0.0/0)`
     3.  `Type: All traffic` (All ports), `Source: Anywhere (0.0.0.0/0)`
 
-![Konfigurasi Security Group Name](Screenshot%202025-10-26%20013337.png)
-![Konfigurasi Security Group Rules](Screenshot%202025-10-26%20013349.png)
+![Konfigurasi Security Group Name](./Screenshot%202025-10-26%20013337.png)
+![Konfigurasi Security Group Rules](./Screenshot%202025-10-26%20013349.png)
 
 ### Fase 2: Setup Server & Aplikasi Rentan (DVWA)
 
@@ -60,30 +60,30 @@ Setelah *instance* berjalan, saya terhubung ke server menggunakan SSH dan file `
     ```bash
     apt update && apt upgrade -y
     ```
-    ![Terminal apt update upgrade](Screenshot%202025-10-26%20013904.png)
+    ![Terminal apt update upgrade](./Screenshot%202025-10-26%20013904.png)
 
 2.  **Instal LAMP Stack:** Saya menginstal Apache (Web Server), MySQL (Database), dan PHP.
     ```bash
     apt install apache2 -y
     apt install php libapache2-mod-php php-mysql mysql-server -y
     ```
-    ![Terminal install apache2](Screenshot%202025-10-26%20014011.png)
-    ![Terminal install PHP & MySQL](Screenshot%202025-10-26%20014254.png)
+    ![Terminal install apache2](./Screenshot%202025-10-26%20014011.png)
+    ![Terminal install PHP & MySQL](./Screenshot%202025-10-26%20014254.png)
 
 3.  **Verifikasi Web Server:** Saya mengakses IP Publik server (`http://50.99.196.5`) dari browser dan memverifikasi bahwa halaman default Apache telah aktif.
-    ![Verifikasi Halaman Apache](Screenshot%202025-10-26%20014118.jpg)
+    ![Verifikasi Halaman Apache](./Screenshot%202025-10-26%20014118.jpg)
 
 4.  **Instal DVWA:** Saya mengunduh (clone) aplikasi *Damn Vulnerable Web Application* (DVWA) dari GitHub.
     ```bash
     git clone [https://github.com/digininja/DVWA.git](https://github.com/digininja/DVWA.git) /var/www/html/dvwa
     ```
-    ![Terminal git clone DVWA](Screenshot%202025-10-26%20014346.png)
+    ![Terminal git clone DVWA](./Screenshot%202025-10-26%20014346.png)
 
 5.  **Konfigurasi Izin (Sengaja Dibuat Rentan):** Saya memberikan izin `777` (baca, tulis, eksekusi untuk semua) ke folder DVWA.
     ```bash
     chmod -R 777 /var/www/html/dvwa
     ```
-    ![Terminal chmod 777](Screenshot%202025-10-26%20014518.png)
+    ![Terminal chmod 777](./Screenshot%202025-10-26%20014518.png)
 
 6.  **Setup Database & DVWA:** Saya mengkonfigurasi file `config.inc.php` DVWA dan membuat database MySQL yang diperlukan. Setelah me-restart Apache, saya berhasil mengakses halaman login DVWA dan menyelesaikan setup.
 
