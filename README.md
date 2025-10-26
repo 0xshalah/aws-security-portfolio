@@ -131,6 +131,16 @@ Selanjutnya, saya melakukan pemindaian kerentanan pada aplikasi web dengan Nikto
   * **Eksposur .git:** Temuan paling kritis adalah `/git/HEAD` dan `/git/config`. Ini berarti seluruh *source code* aplikasi bisa diunduh oleh penyerang, memberi mereka "cetak biru" lengkap untuk menemukan lebih banyak celah.
   * **File Login:** Menemukan `/login.php`, mengonfirmasi titik masuk aplikasi.
 
+#### 3\. Exploitation (Eksploitasi)
+
+Bagian ini mendemonstrasikan eksploitasi kerentanan yang ditemukan.
+
+**a. SQL Injection (SQLi)**
+Saya menargetkan modul "SQL Injection" di DVWA. Pertama, saya login ke DVWA dan mengatur *Security Level* ke **Low**.
+
+  * **Payload:** `' OR 1=1 #`
+  * **Hasil:** Payload ini berhasil mem-bypass logika `WHERE` pada *query* SQL, menyebabkan *query* tersebut mengembalikan **semua data** dari tabel `users`, seperti yang terlihat di bawah ini.
+
 ![Login ke DVWA](./dvwa-login.png)
 ![Set Security Level Low](./dvwa-security-low.png)
 ...
