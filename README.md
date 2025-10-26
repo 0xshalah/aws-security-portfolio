@@ -182,6 +182,8 @@ Aturan *Inbound* pada *Security Group* `Project1-Vulnerable-SG` diperketat:
   * Aturan `SSH` diubah *Source*-nya dari `Anywhere (0.0.0.0/0)` menjadi **`My IP`** (spesifik ke IP address saya).
   * Aturan `HTTP` dibiarkan `Anywhere (0.0.0.0/0)` agar web server tetap bisa diakses publik.
 
+![Hasil setelah harden](./sg-after-harden.png)    
+
 #### 2\. Memperbaiki Izin File Server
 
 Izin `777` dicabut dan diganti dengan izin yang lebih aman menggunakan `chown` dan `chmod`. Folder `uploads` diberi izin `775` dan `config.inc.php` diberi `664`.
@@ -193,6 +195,8 @@ sudo find /var/www/html/dvwa -type f -exec chmod 644 {} \;
 sudo chmod 775 /var/www/html/dvwa/hackable/uploads
 sudo chmod 664 /var/www/html/dvwa/config/config.inc.php
 ```
+
+![Hasil setelah chmod harden](./chmod-harden.png)
 
 #### 3\. Memperbaiki Konfigurasi Apache
 
@@ -214,6 +218,8 @@ Konfigurasi Apache (`000-default.conf`) dimodifikasi untuk:
     Require all denied
 </DirectoryMatch>
 ```
+
+![Hasil setelah perbaiki apache](./apache-conf-harden.png)
 
 Apache di-restart setelah perubahan konfigurasi:
 
@@ -243,3 +249,6 @@ Tindakan ini secara eksplisit memblokir akses dan mematikan *engine* PHP di dire
   * **Web Shell Execution:** Mengakses *web shell* yang sebelumnya berhasil (`.../shell.php?cmd=whoami`) sekarang menghasilkan **403 Forbidden**, membuktikan eksekusi PHP di folder *uploads* telah diblokir.
 
 **Kesimpulan Hardening:** Dengan kombinasi perbaikan *Security Group*, izin file, konfigurasi Apache, dan `.htaccess`, kerentanan utama yang dieksploitasi sebelumnya berhasil ditutup. Server kini jauh lebih aman.
+
+![hasil hardening dir](./verify-forbidden-dir.png)
+![hasil hardening shell](./verify-forbidden-shell.png)
