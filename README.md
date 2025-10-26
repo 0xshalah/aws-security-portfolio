@@ -70,7 +70,7 @@ Setelah *instance* berjalan, saya terhubung ke server menggunakan SSH dan file `
     ![Terminal install apache2](./Screenshot%202025-10-26%20014011.png)
     ![Terminal install PHP & MySQL](./Screenshot%202025-10-26%20014254.png)
 
-3.  **Verifikasi Web Server:** Saya mengakses IP Publik server (`http://50.99.196.5`) dari browser dan memverifikasi bahwa halaman default Apache telah aktif.
+3.  **Verifikasi Web Server:** Saya mengakses IP Publik server (`http://98.93.196.5`) dari browser dan memverifikasi bahwa halaman default Apache telah aktif.
     ![Verifikasi Halaman Apache](./Screenshot%202025-10-26%20014118.jpg)
 
 4.  **Instal DVWA:** Saya mengunduh (clone) aplikasi *Damn Vulnerable Web Application* (DVWA) dari GitHub.
