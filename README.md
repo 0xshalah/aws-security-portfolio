@@ -7,9 +7,9 @@ Selamat datang di portofolio proyek keamanan cloud saya. Repositori ini berisi d
 ## Daftar Proyek
 
 ### Proyek 1: Analisis Kerentanan & Hardening EC2
-* **Tujuan:** Mensimulasikan setup server yang sengaja dibuat rentan di **AWS EC2**, kemudian melakukan pemindaian keamanan, eksploitasi, dan diakhiri dengan proses *hardening* (perbaikan) menggunakan AWS Security Groups dan konfigurasi server yang aman.
-* **Teknologi:** `AWS EC2`, `Security Groups`, `Apache2`, `PHP`, `MySQL`, `DVWA`, `Nmap`, `Nikto`.
-* **Status:** `Selesai` 🎉
+* **Tujuan:** Mensimulasikan server yang sengaja dibuat rentan di AWS EC2, melakukan pemindaian keamanan, dan kemudian melakukan *hardening* (perbaikan) menggunakan AWS Security Groups dan Network ACLs.
+* **Teknologi:** `AWS EC2`, `Security Groups`, `Apache2`, `PHP`, `MySQL`, `DVWA`, `Nmap`.
+* **Status:** `Selesai`
 
 ### Proyek 2: "Flag API" Serverless
 * **Tujuan:** Membangun sebuah API sederhana untuk *submit flag* CTF menggunakan arsitektur *serverless* (tanpa server).
@@ -25,136 +25,168 @@ Selamat datang di portofolio proyek keamanan cloud saya. Repositori ini berisi d
 
 ## Detail Proyek 1: Analisis Kerentanan & Hardening EC2
 
-Proyek ini saya bagi menjadi beberapa fase: mulai dari *setup* infrastruktur dan aplikasi yang sengaja dibuat rentan, analisis kerentanan, eksploitasi, hingga *hardening*.
+Proyek ini dibagi menjadi beberapa fase. Fase pertama adalah *setup* infrastruktur dan aplikasi yang sengaja dibuat rentan.
 
-### Fase 1: Setup Infrastruktur Awal (AWS EC2)
+### Fase 1: Setup Infrastruktur (AWS EC2)
 
-Langkah pertama adalah menyiapkan 'medan pertempuran'-nya: sebuah *instance* **EC2** baru dengan konfigurasi yang sengaja dibuat kurang aman.
+Saya memulai dengan meluncurkan sebuah *instance* EC2 baru dengan konfigurasi berikut:
 * **Name:** `Project1-Vulnerable-Server`
-* **OS (AMI):** `Ubuntu Server 24.04 LTS` (pilih yang *Free tier eligible*)
-* **Instance Type:** `t2.micro` (juga *Free tier eligible*)
-* **Key Pair:** `aws-project1-key` (dibuat baru, file `.pem` disimpan aman)
+* **OS (AMI):** `Ubuntu Server 24.04 LTS` (Free tier eligible)
+* **Instance Type:** `t2.micro` (Free tier eligible)
+* **Key Pair:** `aws-project1-key` (dibuat baru dan disimpan dengan aman)
 
 ![Konfigurasi Nama Server](./Screenshot%202025-10-26%20012900.png)
 ![Konfigurasi OS Ubuntu](./Screenshot%202025-10-26%20012933.png)
 ![Konfigurasi Instance Type t2.micro](./Screenshot%202025-10-26%20013020.png)
 ![Konfigurasi Key Pair](./Screenshot%202025-10-26%20013120.png)
 
-* #### Konfigurasi Firewall (Security Group) - Sengaja Dibuka Lebar
-Bagian krusial di fase *setup* ini adalah **Security Group**. Saya sengaja membuat aturan *inbound* yang sangat permisif untuk simulasi:
+* #### Konfigurasi Firewall (Security Group)
+Bagian terpenting adalah konfigurasi *Security Group*. Untuk tujuan proyek ini, saya **sengaja membuat aturan yang sangat tidak aman** agar bisa dianalisis nanti.
+
 * **Security Group Name:** `Project1-Vulnerable-SG`
-* **Inbound Rules Awal:**
-    1.  `Type: SSH` (Port 22), `Source: Anywhere (0.0.0.0/0)` -> Risiko *brute force*.
-    2.  `Type: HTTP` (Port 80), `Source: Anywhere (0.0.0.0/0)` -> Untuk akses web.
-    3.  `Type: All traffic` (All ports), `Source: Anywhere (0.0.0.0/0)` -> Membuka semua port, sangat berbahaya.
+* **Inbound Rules:**
+    1.  `Type: SSH` (Port 22), `Source: Anywhere (0.0.0.0/0)`
+    2.  `Type: HTTP` (Port 80), `Source: Anywhere (0.0.0.0/0)`
+    3.  `Type: All traffic` (All ports), `Source: Anywhere (0.0.0.0/0)`
 
 ![Konfigurasi Security Group Name](./Screenshot%202025-10-26%20013337.png)
-![Konfigurasi Security Group Rules Awal (Rentan)](./Screenshot%202025-10-26%20013349.png)
+![Konfigurasi Security Group Rules](./Screenshot%202025-10-26%20013349.png)
 
-### Fase 2: Setup Server & Aplikasi Target (DVWA)
+### Fase 2: Setup Server & Aplikasi Rentan (DVWA)
 
-Setelah *instance* siap, saya login via SSH dan mulai menyiapkan *web server* beserta aplikasi yang akan jadi target.
+Setelah *instance* berjalan, saya terhubung ke server menggunakan SSH dan file `.pem` saya.
 
-1.  **Update Server:** Biasakan update dulu.
+1.  **Update Server:** Pertama, saya memperbarui semua *package manager*.
     ```bash
     apt update && apt upgrade -y
     ```
     ![Terminal apt update upgrade](./Screenshot%202025-10-26%20013904.png)
 
-2.  **Instal LAMP Stack:** Pasang **Apache, MySQL, PHP** dan modul-modul yang diperlukan.
+2.  **Instal LAMP Stack:** Saya menginstal Apache (Web Server), MySQL (Database), dan PHP.
     ```bash
-    apt install apache2 php libapache2-mod-php php-mysql mysql-server -y
+    apt install apache2 -y
+    apt install php libapache2-mod-php php-mysql mysql-server -y
     ```
     ![Terminal install apache2](./Screenshot%202025-10-26%20014011.png)
     ![Terminal install PHP & MySQL](./Screenshot%202025-10-26%20014254.png)
 
-3.  **Verifikasi Web Server:** Cek IP publik di browser, pastikan halaman default Apache muncul.
-    ![Verifikasi Halaman Apache](./Screenshot%202025-10-26%20014118.png)
+3.  **Verifikasi Web Server:** Saya mengakses IP Publik server (`http://98.93.196.5`) dari browser dan memverifikasi bahwa halaman default Apache telah aktif.
+    ![Verifikasi Halaman Apache](./Screenshot%202025-10-26%20014118.jpg)
 
-4.  **Instal DVWA:** *Clone* aplikasi **Damn Vulnerable Web Application** dari GitHub sebagai target latihan.
+4.  **Instal DVWA:** Saya mengunduh (clone) aplikasi *Damn Vulnerable Web Application* (DVWA) dari GitHub.
     ```bash
     git clone [https://github.com/digininja/DVWA.git](https://github.com/digininja/DVWA.git) /var/www/html/dvwa
     ```
     ![Terminal git clone DVWA](./Screenshot%202025-10-26%20014346.png)
 
-5.  **Konfigurasi Izin File (Sengaja Dibuat Rentan):** Ini bagian penting simulasi kerentanan. Saya set izin `777` (bisa dibaca, ditulis, dieksekusi oleh siapa saja) ke folder DVWA.
+5.  **Konfigurasi Izin (Sengaja Dibuat Rentan):** Saya memberikan izin `777` (baca, tulis, eksekusi untuk semua) ke folder DVWA.
     ```bash
     chmod -R 777 /var/www/html/dvwa
     ```
-    ![Terminal chmod 777 (Rentan)](./Screenshot%202025-10-26%20014518.png)
+    ![Terminal chmod 777](./Screenshot%202025-10-26%20014518.png)
 
-6.  **Setup Database & DVWA:** Edit `config.inc.php` DVWA, atur database MySQL, lalu selesaikan setup DVWA lewat browser.
+6.  **Setup Database & DVWA:** Saya mengkonfigurasi file `config.inc.php` DVWA dan membuat database MySQL yang diperlukan. Setelah me-restart Apache, saya berhasil mengakses halaman login DVWA dan menyelesaikan setup.
 
-### Fase 3: Analisis Kerentanan Awal (Sebelum Diserang)
+### Fase 3: Analisis Kerentanan Awal
 
-Dari *setup* di atas, server ini punya beberapa vektor serangan yang sengaja dibuat:
-1.  **Level Infrastruktur:** *Security Group* terlalu terbuka (`SSH Anywhere`, `All Traffic Anywhere`).
-2.  **Level Server:** Izin file `777` memungkinkan *user* `www-data` (Apache) mengeksekusi file di direktori web, fatal jika ada celah *file upload*.
-3.  **Level Aplikasi:** DVWA sendiri penuh lubang (SQLi, File Upload, XSS, dll).
+Server ini sekarang memiliki beberapa kerentanan kritis yang disengaja:
 
----
+1.  **Kerentanan Infrastruktur (Security Group):**
+    * **SSH (Port 22) terbuka untuk `0.0.0.0/0`:** Ini sangat berisiko. Ini mengizinkan *siapa saja* di internet untuk mencoba serangan *brute force* (menebak password/key) terhadap server saya.
+    * **All traffic terbuka untuk `0.0.0.0/0`:** Ini lebih parah. Ini membuka *semua port*, termasuk port sensitif seperti database (`MySQL - 3306`) ke seluruh internet. Penyerang bisa langsung terhubung ke database saya dari mana saja.
 
-### Fase 4: Pengujian & Eksploitasi (Menyerang Target)
+2.  **Kerentanan Server (Izin File):**
+    * **`chmod 777`:** Ini adalah mimpi buruk keamanan. Ini berarti *user* web server (`www-data`) memiliki izin untuk *menulis* dan *mengeksekusi* file di dalam folder DVWA.
+    * **Implikasi:** Jika seorang penyerang berhasil menemukan celah *file upload* di DVWA (yang memang ada), mereka dapat mengunggah *web shell* (misalnya `shell.php`). Karena izin `777`, server akan mengizinkan file itu dieksekusi, memberikan penyerang kendali penuh (Remote Code Execution) atas server saya.
 
-Dengan *attack machine* (Kali Linux), saya mulai melakukan simulasi serangan.
+3.  **Kerentanan Aplikasi (DVWA):**
+    * Aplikasi DVWA sendiri sengaja dibuat penuh dengan celah, seperti **SQL Injection**, **Cross-Site Scripting (XSS)**, dan **File Inclusion**, yang akan saya gunakan sebagai target pengujian.
+
+### Fase 4: Rencana Pengujian (Pentesting)
+
+Dengan setup ini, server saya siap untuk diuji.
 
 #### 1. Reconnaissance (Nmap)
-Pemindaian **Nmap** untuk memetakan *port* dan layanan yang aktif.
-```bash
-nmap -sV -T4 98.93.196.5
-````
+Saya memulai fase pengujian dengan pemindaian Nmap dari *attack machine* (Kali Linux) untuk mengidentifikasi *port* dan layanan yang berjalan.
 
-  * **Temuan:** Port **SSH (22)**, **DNS (53)**, dan **HTTP (80)** terkonfirmasi terbuka. Menariknya, **MySQL (3306)** tidak terdeteksi dari luar, menunjukkan konfigurasi *default* MySQL sudah cukup aman (*listening* di `127.0.0.1`), meskipun *firewall* (Security Group) terbuka lebar. Ini contoh bagus *Defense in Depth* level aplikasi.
+![Hasil Nmap Scan](./Screenshot%202025-10-26%20182709.png)
+
+**Analisis Hasil Nmap:**
+
+  * **`PORT 22/tcp open ssh OpenSSH 9.6p1...`**: Port SSH terbuka untuk umum. Ini adalah risiko untuk serangan *brute-force*.
+  * **`PORT 53/tcp open domain Unbound`**: Port DNS terekspos. Ini adalah *information disclosure* (kebocoran informasi) yang mengungkapkan bahwa server menggunakan *resolver* "Unbound".
+  * **`PORT 80/tcp open http Apache httpd 2.4.58...`**: Port web server utama kita, menjalankan Apache. Ini akan menjadi target utama untuk eksploitasi aplikasi web.
+  * **Temuan Penting (Port 3306 Hilang):** Menariknya, Port 3306 (MySQL) tidak muncul sebagai `open` meskipun *Security Group* mengizinkan `All traffic`. Ini adalah contoh bagus dari **Defense in Depth**. Walaupun *firewall* jaringan gagal (sengaja dibuka), *konfigurasi aplikasi* MySQL aman (secara *default* hanya *listening* di `127.0.0.1`), sehingga *port* tersebut tidak merespons koneksi dari internet.
 
 #### 2\. Vulnerability Assessment (Nikto)
 
-Pemindaian **Nikto** pada aplikasi web (`/dvwa/`) untuk mencari miskonfigurasi dan file sensitif.
+Selanjutnya, saya melakukan pemindaian kerentanan pada aplikasi web dengan Nikto untuk mencari kesalahan konfigurasi umum dan file berbahaya.
 
-```bash
-nikto -h [http://98.93.196.5/dvwa/](http://98.93.196.5/dvwa/)
-```
+![Hasil Nikto Scan](./Screenshot%202025-10-26%20191000.png)
 
-  * **Temuan Utama:** *Header* keamanan (X-Frame-Options, X-Content-Type-Options) tidak ada, *Directory Indexing* aktif di folder `/config/`, `/database/`, dll., dan yang paling kritis, direktori `.git` terekspos, memungkinkan potensi pencurian *source code*.
+**Analisis Hasil Nikto:**
+
+  * **Miskonfigurasi Header:** Nikto menemukan bahwa *header* `X-Frame-Options` dan `X-Content-Type-Options` tidak ada. Ini membuat aplikasi rentan terhadap serangan *Clickjacking* dan *MIME sniffing*.
+  * **Directory Indexing:** Nikto menemukan beberapa direktori sensitif yang terekspos: `/config/`, `/database/`, `/docs/`. Ini adalah kebocoran informasi yang parah, memungkinkan penyerang melihat file konfigurasi dan struktur database.
+  * **Eksposur .git:** Temuan paling kritis adalah `/git/HEAD` dan `/git/config`. Ini berarti seluruh *source code* aplikasi bisa diunduh oleh penyerang, memberi mereka "cetak biru" lengkap untuk menemukan lebih banyak celah.
+  * **File Login:** Menemukan `/login.php`, mengonfirmasi titik masuk aplikasi.
 
 #### 3\. Exploitation (Eksploitasi)
 
+Bagian ini mendemonstrasikan eksploitasi kerentanan yang ditemukan.
+
 **a. SQL Injection (SQLi)**
-Menargetkan modul "SQL Injection" di DVWA (Level: Low).
+Saya menargetkan modul "SQL Injection" di DVWA. Pertama, saya login ke DVWA dan mengatur *Security Level* ke **Low**.
 
   * **Payload:** `' OR 1=1 #`
-  * **Hasil:** Berhasil\! *Payload* ini mem-bypass filter `WHERE` dan query SQL mengembalikan semua *record* dari tabel `users`.
+  * **Hasil:** Payload ini berhasil mem-bypass logika `WHERE` pada *query* SQL, menyebabkan *query* tersebut mengembalikan **semua data** dari tabel `users`, seperti yang terlihat di bawah ini.
+
+![Login ke DVWA](./dvwa-login.png)
+![Set Security Level Low](./dvwa-security-low.png)
+...
+![Hasil SQL Injection Sukses](./sqli-success.png)
 
 **b. Web Shell Upload & Remote Code Execution (RCE)**
-Memanfaatkan kombinasi celah "File Upload" di DVWA dan izin `chmod 777` pada server.
+Saya memanfaatkan kerentanan "File Upload" dan izin `chmod 777` untuk mengunggah *web shell* sederhana (`shell.php`).
 
-  * **Pembuatan Shell:** Membuat file `shell.php` sederhana di Kali.
+  * **Pembuatan Shell:**
+
     ```bash
     echo '<?php system($_GET["cmd"]); ?>' > ~/Desktop/shell.php
     ```
-  * **Upload:** Mengunggah `shell.php` melalui fitur *upload* DVWA.
-  * **Eksekusi (RCE):** Mengakses *shell* via URL dan menyisipkan perintah (`?cmd=whoami`).
+
+  * **Proses Upload:** Menggunakan fitur *upload* di DVWA.
+
+  * **Eksekusi Perintah (RCE):** Mengakses *shell* melalui browser dan menjalankan perintah `whoami`.
     `http://98.93.196.5/dvwa/hackable/uploads/shell.php?cmd=whoami`
-  * **Hasil:** Server merespons dengan **`www-data`**, mengonfirmasi **Remote Code Execution** berhasil didapatkan sebagai *user* Apache.
 
-**Kesimpulan Eksploitasi:** Kombinasi kerentanan aplikasi (SQLi, File Upload), izin file server yang terlalu permisif (`777`), dan *firewall* yang lemah (Security Group) memungkinkan kompromi penuh terhadap *web server*.
+  * **Hasil:** Server merespons dengan **`www-data`**, mengonfirmasi bahwa saya berhasil mendapatkan *Remote Code Execution* sebagai *user web server*.
 
------
+**Kesimpulan Eksploitasi:** Server berhasil dikompromikan melalui kerentanan aplikasi web (SQLi dan File Upload) yang diperparah oleh miskonfigurasi izin server (`chmod 777`) dan *firewall* yang terlalu permisif (*Security Group*).
 
-### Fase 5: Hardening (Memperbaiki Celah)
+![Membuat shell.php](./create-shell.png)
+...
+![Upload shell.php berhasil](./upload-success.png)
+...
+![Hasil RCE whoami](./rce-whoami.png)
 
-Setelah berhasil dieksploitasi, langkah terakhir adalah memperbaiki semua kerentanan yang ditemukan.
+### Fase 5: Hardening (Perbaikan)
+
+Langkah-langkah berikut diambil untuk memperbaiki kerentanan:
 
 #### 1\. Memperbaiki Firewall (Security Group)
 
-Aturan *Inbound* **Security Group** diperketat secara signifikan:
+Aturan *Inbound* pada *Security Group* `Project1-Vulnerable-SG` diperketat:
 
   * Aturan `All traffic` **dihapus**.
-  * Aturan `SSH` diubah *Source*-nya menjadi **`My IP`** (hanya IP saya yang bisa SSH).
-  * Aturan `HTTP` dibiarkan `Anywhere` (agar web tetap bisa diakses).
+  * Aturan `SSH` diubah *Source*-nya dari `Anywhere (0.0.0.0/0)` menjadi **`My IP`** (spesifik ke IP address saya).
+  * Aturan `HTTP` dibiarkan `Anywhere (0.0.0.0/0)` agar web server tetap bisa diakses publik.
+
+![Hasil setelah harden](./sg-after-harden.png)    
 
 #### 2\. Memperbaiki Izin File Server
 
-Izin `777` dicabut total. Kepemilikan file diatur ke `www-data`, izin direktori diubah ke `755`, izin file ke `644`, kecuali folder `uploads` (`775`) dan `config.inc.php` (`664`).
+Izin `777` dicabut dan diganti dengan izin yang lebih aman menggunakan `chown` dan `chmod`. Folder `uploads` diberi izin `775` dan `config.inc.php` diberi `664`.
 
 ```bash
 sudo chown -R www-data:www-data /var/www/html/dvwa
@@ -164,12 +196,14 @@ sudo chmod 775 /var/www/html/dvwa/hackable/uploads
 sudo chmod 664 /var/www/html/dvwa/config/config.inc.php
 ```
 
+![Hasil setelah chmod harden](./chmod-harden.png)
+
 #### 3\. Memperbaiki Konfigurasi Apache
 
-Konfigurasi Apache (`000-default.conf`) disesuaikan:
+Konfigurasi Apache (`000-default.conf`) dimodifikasi untuk:
 
-  * **Directory Indexing dinonaktifkan** (opsi `Indexes` dihapus).
-  * Akses ke direktori `.git` **diblokir** via `<DirectoryMatch>`.
+  * Menonaktifkan *Directory Indexing* (menghapus `Indexes` dari `Options`).
+  * Memblokir akses ke direktori `.git` menggunakan `<DirectoryMatch>`.
 
 <!-- end list -->
 
@@ -185,7 +219,9 @@ Konfigurasi Apache (`000-default.conf`) disesuaikan:
 </DirectoryMatch>
 ```
 
-Apache di-restart setelahnya:
+![Hasil setelah perbaiki apache](./apache-conf-harden.png)
+
+Apache di-restart setelah perubahan konfigurasi:
 
 ```bash
 sudo systemctl daemon-reload
@@ -194,7 +230,7 @@ sudo systemctl restart apache2
 
 #### 4\. Menonaktifkan Eksekusi PHP di Folder Uploads (`.htaccess`)
 
-Sebagai lapisan pertahanan tambahan (karena `chmod 644` saja ternyata tidak cukup di *setup* ini), saya menambahkan file `.htaccess` di direktori `uploads` (`/var/www/html/dvwa/hackable/uploads/`) untuk secara eksplisit memblokir eksekusi PHP.
+Karena izin file `644` saja tidak cukup menghentikan eksekusi PHP pada konfigurasi server ini, file `.htaccess` ditambahkan di `/var/www/html/dvwa/hackable/uploads/` dengan isi:
 
 ```apache
 <Files "*.php">
@@ -203,11 +239,16 @@ Sebagai lapisan pertahanan tambahan (karena `chmod 644` saja ternyata tidak cuku
 php_flag engine off
 ```
 
+![Membuat file ./htaccess](./htaccess-creation.png)
+
+Tindakan ini secara eksplisit memblokir akses dan mematikan *engine* PHP di direktori *uploads*.
+
 #### 5\. Verifikasi Hardening
 
-Pengujian ulang setelah *hardening*:
+  * **Directory Indexing:** Mengakses `http://98.93.196.5/dvwa/config/` sekarang menghasilkan **403 Forbidden**.
+  * **Web Shell Execution:** Mengakses *web shell* yang sebelumnya berhasil (`.../shell.php?cmd=whoami`) sekarang menghasilkan **403 Forbidden**, membuktikan eksekusi PHP di folder *uploads* telah diblokir.
 
-  * **Directory Indexing:** Mengakses `/dvwa/config/` kini menghasilkan **403 Forbidden**. ✅
-  * **Web Shell Execution:** Mengakses `shell.php` yang di-*upload* (`.../shell.php?cmd=whoami`) kini juga menghasilkan **403 Forbidden**. Eksekusi PHP berhasil diblokir. ✅
+**Kesimpulan Hardening:** Dengan kombinasi perbaikan *Security Group*, izin file, konfigurasi Apache, dan `.htaccess`, kerentanan utama yang dieksploitasi sebelumnya berhasil ditutup. Server kini jauh lebih aman.
 
-**Kesimpulan Hardening:** Melalui perbaikan berlapis pada *firewall* (Security Group), izin file sistem, konfigurasi *web server* (Apache), dan pembatasan eksekusi skrip (`.htaccess`), kerentanan utama yang sebelumnya dieksploitasi berhasil ditutup, membuat server jauh lebih aman.
+![hasil hardening dir](./verify-forbidden-dir.png)
+![hasil hardening shell](./verify-forbidden-shell.png)
