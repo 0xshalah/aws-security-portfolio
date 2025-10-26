@@ -117,3 +117,16 @@ Saya memulai fase pengujian dengan pemindaian Nmap dari *attack machine* (Kali L
   * **`PORT 53/tcp open domain Unbound`**: Port DNS terekspos. Ini adalah *information disclosure* (kebocoran informasi) yang mengungkapkan bahwa server menggunakan *resolver* "Unbound".
   * **`PORT 80/tcp open http Apache httpd 2.4.58...`**: Port web server utama kita, menjalankan Apache. Ini akan menjadi target utama untuk eksploitasi aplikasi web.
   * **Temuan Penting (Port 3306 Hilang):** Menariknya, Port 3306 (MySQL) tidak muncul sebagai `open` meskipun *Security Group* mengizinkan `All traffic`. Ini adalah contoh bagus dari **Defense in Depth**. Walaupun *firewall* jaringan gagal (sengaja dibuka), *konfigurasi aplikasi* MySQL aman (secara *default* hanya *listening* di `127.0.0.1`), sehingga *port* tersebut tidak merespons koneksi dari internet.
+
+#### 2\. Vulnerability Assessment (Nikto)
+
+Selanjutnya, saya melakukan pemindaian kerentanan pada aplikasi web dengan Nikto untuk mencari kesalahan konfigurasi umum dan file berbahaya.
+
+![Hasil Nikto Scan](./Screenshot%202025-10-26%20191000.png)
+
+**Analisis Hasil Nikto:**
+
+  * **Miskonfigurasi Header:** Nikto menemukan bahwa *header* `X-Frame-Options` dan `X-Content-Type-Options` tidak ada. Ini membuat aplikasi rentan terhadap serangan *Clickjacking* dan *MIME sniffing*.
+  * **Directory Indexing:** Nikto menemukan beberapa direktori sensitif yang terekspos: `/config/`, `/database/`, `/docs/`. Ini adalah kebocoran informasi yang parah, memungkinkan penyerang melihat file konfigurasi dan struktur database.
+  * **Eksposur .git:** Temuan paling kritis adalah `/git/HEAD` dan `/git/config`. Ini berarti seluruh *source code* aplikasi bisa diunduh oleh penyerang, memberi mereka "cetak biru" lengkap untuk menemukan lebih banyak celah.
+  * **File Login:** Menemukan `/login.php`, mengonfirmasi titik masuk aplikasi.
