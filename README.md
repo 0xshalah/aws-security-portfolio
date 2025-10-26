@@ -233,11 +233,7 @@ Karena izin file `644` saja tidak cukup menghentikan eksekusi PHP pada konfigura
 php_flag engine off
 ```
 
-*(Screenshot pembuatan .htaccess opsional)*
-
-```
-![Membuat file .htaccess](./htaccess-creation.png)
-```
+![Membuat file ./htaccess](./htaccess-creation.png)
 
 Tindakan ini secara eksplisit memblokir akses dan mematikan *engine* PHP di direktori *uploads*.
 
