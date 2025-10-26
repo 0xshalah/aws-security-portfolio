@@ -104,9 +104,16 @@ Server ini sekarang memiliki beberapa kerentanan kritis yang disengaja:
 
 ### Fase 4: Rencana Pengujian (Pentesting)
 
-Dengan setup ini, server saya siap untuk diuji. Rencana selanjutnya adalah:
-1.  **Reconnaissance:** Melakukan pemindaian `nmap` dari komputer lokal saya (atau Kali Linux) terhadap IP publik server untuk mengidentifikasi semua port dan layanan yang terbuka.
-2.  **Vulnerability Assessment:** Menggunakan *tools* untuk memindai kerentanan yang ada di DVWA.
-3.  **Exploitation:** Mencoba mengeksploitasi celah yang ada:
-    * Melakukan **SQL Injection** untuk mengambil data dari database.
-    * Mencoba **File Upload** untuk mengunggah *web shell*, memanfaatkan izin `chmod 777`.
+Dengan setup ini, server saya siap untuk diuji.
+
+#### 1. Reconnaissance (Nmap)
+Saya memulai fase pengujian dengan pemindaian Nmap dari *attack machine* (Kali Linux) untuk mengidentifikasi *port* dan layanan yang berjalan.
+
+![Hasil Nmap Scan](./Screenshot%202025-10-26%20182709.png)
+
+**Analisis Hasil Nmap:**
+
+  * **`PORT 22/tcp open ssh OpenSSH 9.6p1...`**: Port SSH terbuka untuk umum. Ini adalah risiko untuk serangan *brute-force*.
+  * **`PORT 53/tcp open domain Unbound`**: Port DNS terekspos. Ini adalah *information disclosure* (kebocoran informasi) yang mengungkapkan bahwa server menggunakan *resolver* "Unbound".
+  * **`PORT 80/tcp open http Apache httpd 2.4.58...`**: Port web server utama kita, menjalankan Apache. Ini akan menjadi target utama untuk eksploitasi aplikasi web.
+  * **Temuan Penting (Port 3306 Hilang):** Menariknya, Port 3306 (MySQL) tidak muncul sebagai `open` meskipun *Security Group* mengizinkan `All traffic`. Ini adalah contoh bagus dari **Defense in Depth**. Walaupun *firewall* jaringan gagal (sengaja dibuka), *konfigurasi aplikasi* MySQL aman (secara *default* hanya *listening* di `127.0.0.1`), sehingga *port* tersebut tidak merespons koneksi dari internet.
