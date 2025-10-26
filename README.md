@@ -169,3 +169,81 @@ Saya memanfaatkan kerentanan "File Upload" dan izin `chmod 777` untuk mengunggah
 ![Upload shell.php berhasil](./upload-success.png)
 ...
 ![Hasil RCE whoami](./rce-whoami.png)
+
+### Fase 5: Hardening (Perbaikan)
+
+Langkah-langkah berikut diambil untuk memperbaiki kerentanan:
+
+#### 1\. Memperbaiki Firewall (Security Group)
+
+Aturan *Inbound* pada *Security Group* `Project1-Vulnerable-SG` diperketat:
+
+  * Aturan `All traffic` **dihapus**.
+  * Aturan `SSH` diubah *Source*-nya dari `Anywhere (0.0.0.0/0)` menjadi **`My IP`** (spesifik ke IP address saya).
+  * Aturan `HTTP` dibiarkan `Anywhere (0.0.0.0/0)` agar web server tetap bisa diakses publik.
+
+#### 2\. Memperbaiki Izin File Server
+
+Izin `777` dicabut dan diganti dengan izin yang lebih aman menggunakan `chown` dan `chmod`. Folder `uploads` diberi izin `775` dan `config.inc.php` diberi `664`.
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/dvwa
+sudo find /var/www/html/dvwa -type d -exec chmod 755 {} \;
+sudo find /var/www/html/dvwa -type f -exec chmod 644 {} \;
+sudo chmod 775 /var/www/html/dvwa/hackable/uploads
+sudo chmod 664 /var/www/html/dvwa/config/config.inc.php
+```
+
+#### 3\. Memperbaiki Konfigurasi Apache
+
+Konfigurasi Apache (`000-default.conf`) dimodifikasi untuk:
+
+  * Menonaktifkan *Directory Indexing* (menghapus `Indexes` dari `Options`).
+  * Memblokir akses ke direktori `.git` menggunakan `<DirectoryMatch>`.
+
+<!-- end list -->
+
+```apache
+<Directory /var/www/html>
+    Options FollowSymLinks MultiViews
+    AllowOverride All
+    Require all granted
+</Directory>
+
+<DirectoryMatch "/\.git(/.*)?$">
+    Require all denied
+</DirectoryMatch>
+```
+
+Apache di-restart setelah perubahan konfigurasi:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart apache2
+```
+
+#### 4\. Menonaktifkan Eksekusi PHP di Folder Uploads (`.htaccess`)
+
+Karena izin file `644` saja tidak cukup menghentikan eksekusi PHP pada konfigurasi server ini, file `.htaccess` ditambahkan di `/var/www/html/dvwa/hackable/uploads/` dengan isi:
+
+```apache
+<Files "*.php">
+    Require all denied
+</Files>
+php_flag engine off
+```
+
+*(Screenshot pembuatan .htaccess opsional)*
+
+```
+![Membuat file .htaccess](./htaccess-creation.png)
+```
+
+Tindakan ini secara eksplisit memblokir akses dan mematikan *engine* PHP di direktori *uploads*.
+
+#### 5\. Verifikasi Hardening
+
+  * **Directory Indexing:** Mengakses `http://98.93.196.5/dvwa/config/` sekarang menghasilkan **403 Forbidden**.
+  * **Web Shell Execution:** Mengakses *web shell* yang sebelumnya berhasil (`.../shell.php?cmd=whoami`) sekarang menghasilkan **403 Forbidden**, membuktikan eksekusi PHP di folder *uploads* telah diblokir.
+
+**Kesimpulan Hardening:** Dengan kombinasi perbaikan *Security Group*, izin file, konfigurasi Apache, dan `.htaccess`, kerentanan utama yang dieksploitasi sebelumnya berhasil ditutup. Server kini jauh lebih aman.
