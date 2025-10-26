@@ -130,3 +130,8 @@ Selanjutnya, saya melakukan pemindaian kerentanan pada aplikasi web dengan Nikto
   * **Directory Indexing:** Nikto menemukan beberapa direktori sensitif yang terekspos: `/config/`, `/database/`, `/docs/`. Ini adalah kebocoran informasi yang parah, memungkinkan penyerang melihat file konfigurasi dan struktur database.
   * **Eksposur .git:** Temuan paling kritis adalah `/git/HEAD` dan `/git/config`. Ini berarti seluruh *source code* aplikasi bisa diunduh oleh penyerang, memberi mereka "cetak biru" lengkap untuk menemukan lebih banyak celah.
   * **File Login:** Menemukan `/login.php`, mengonfirmasi titik masuk aplikasi.
+
+![Login ke DVWA](./dvwa-login.png)
+![Set Security Level Low](./dvwa-security-low.png)
+...
+![Hasil SQL Injection Sukses](./sqli-success.png)
