@@ -14,7 +14,7 @@ Selamat datang di portofolio proyek keamanan cloud saya. Repositori ini berisi d
 ### Proyek 2: "Flag API" Serverless
 * **Tujuan:** Membangun sebuah API sederhana untuk *submit flag* CTF menggunakan arsitektur *serverless* (tanpa server).
 * **Teknologi:** `AWS Lambda`, `AWS API Gateway`, `Python`.
-* **Status:** `Belum Dimulai`
+* **Status:** `Selesai`
 
 ### Proyek 3: Mini-CTF dengan Scoreboard
 * **Tujuan:** Menggabungkan Proyek 1 & 2 untuk membuat sebuah platform mini-CTF lengkap dengan *scoreboard* yang dinamis.
