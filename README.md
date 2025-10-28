@@ -267,7 +267,7 @@ Langkah pertama adalah membuat fungsi Lambda yang akan berisi kode Python untuk 
 2.  **Memulai Pembuatan Fungsi:** Di halaman Lambda, saya klik "Create function".
     ![Tombol Create Function Lambda](./lambda-create-button.png)
 
-3.  **Konfigurasi Dasar:** Saya memilih "Author from scratch", memberi nama fungsi `flag-checker-api`, dan memilih `Python 3.12` sebagai *runtime*.
+3.  **Konfigurasi Dasar:** Saya memilih "Author from scratch", memberi nama fungsi `flag-checker-api`, dan memilih `Python 3.13` sebagai *runtime*.
     ![Konfigurasi Dasar Fungsi Lambda](./lambda-config-basic.png)
 
 4.  **Konfigurasi Izin:** Saya membiarkan opsi *default* "Create a new role with basic Lambda permissions" agar AWS otomatis membuatkan *role* IAM dasar. Setelah itu klik "Create function".
@@ -280,7 +280,7 @@ Langkah pertama adalah membuat fungsi Lambda yang akan berisi kode Python untuk 
     ```python
     import json
 
-    # Definisikan flag yang benar (seharusnya disimpan lebih aman, tapi ini contoh)
+    # Bisa didefinisikan lagi flag yang benar (seharusnya disimpan lebih aman, tapi ini hanya contoh saja)
     CORRECT_FLAG = "CTF{th1s_1s_th3_s3cr3t_fl4g}"
 
     def lambda_handler(event, context):
@@ -381,6 +381,6 @@ Saya menguji *endpoint* API menggunakan `curl` dari terminal:
       -d '{"flag": "flag_salah_coba_coba"}'
     ```
     * **Respons:** `{"message": "Flag Salah. Coba lagi."}` ✅
-        *(Screenshot tes flag salah opsional)*
+        ![Hasil Test Curl Flag Salah](./flag-salah.png)
 
 **Kesimpulan Proyek 2:** Berhasil membuat dan menguji API *serverless* sederhana menggunakan AWS Lambda dan API Gateway untuk validasi input. Ini menunjukkan pemahaman dasar arsitektur *serverless* di AWS.
