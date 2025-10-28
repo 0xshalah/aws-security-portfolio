@@ -252,3 +252,135 @@ Tindakan ini secara eksplisit memblokir akses dan mematikan *engine* PHP di dire
 
 ![hasil hardening dir](./verify-forbidden-dir.png)
 ![hasil hardening shell](./verify-forbidden-shell.png)
+
+## Detail Proyek 2: "Flag API" Serverless
+
+Proyek ini bertujuan membuat API sederhana untuk mengecek *flag* CTF tanpa perlu mengelola server. Saya menggunakan **AWS Lambda** untuk kode logikanya dan **AWS API Gateway** sebagai *endpoint* HTTP.
+
+### Fase 1: Membuat Fungsi Lambda (Logika Pengecekan)
+
+Langkah pertama adalah membuat fungsi Lambda yang akan berisi kode Python untuk memeriksa *flag*.
+
+1.  **Mencari Layanan Lambda:** Dari AWS Management Console, saya mencari layanan "Lambda".
+    ![Mencari AWS Lambda](./lambda-search.png)
+
+2.  **Memulai Pembuatan Fungsi:** Di halaman Lambda, saya klik "Create function".
+    ![Tombol Create Function Lambda](./lambda-create-button.png)
+
+3.  **Konfigurasi Dasar:** Saya memilih "Author from scratch", memberi nama fungsi `flag-checker-api`, dan memilih `Python 3.12` sebagai *runtime*.
+    ![Konfigurasi Dasar Fungsi Lambda](./lambda-config-basic.png)
+
+4.  **Konfigurasi Izin:** Saya membiarkan opsi *default* "Create a new role with basic Lambda permissions" agar AWS otomatis membuatkan *role* IAM dasar. Setelah itu klik "Create function".
+    ![Konfigurasi Izin Role Lambda](./lambda-config-permissions.png)
+
+5.  **Editor Kode:** Fungsi berhasil dibuat dan saya diarahkan ke editor kode *online*.
+    ![Editor Kode Lambda dengan Template Awal](./lambda-editor-template.png)
+
+6.  **Menulis Kode Logika:** Saya mengganti kode *template* dengan kode Python berikut:
+    ```python
+    import json
+
+    # Definisikan flag yang benar (seharusnya disimpan lebih aman, tapi ini contoh)
+    CORRECT_FLAG = "CTF{th1s_1s_th3_s3cr3t_fl4g}"
+
+    def lambda_handler(event, context):
+        """
+        Fungsi utama Lambda untuk mengecek flag yang dikirim via API Gateway.
+        """
+        print(f"Received event: {json.dumps(event)}") # Mencatat event yang masuk ke log
+        response_body = {}
+        status_code = 200
+        try:
+            if 'body' in event and event['body']:
+                body = json.loads(event['body'])
+                submitted_flag = body.get('flag')
+            else: submitted_flag = None
+            if submitted_flag:
+                if submitted_flag == CORRECT_FLAG:
+                    response_body = {'message': 'Flag Benar! Selamat!'}
+                else:
+                    response_body = {'message': 'Flag Salah. Coba lagi.'}; status_code = 400
+            else:
+                response_body = {'message': 'Harap kirim flag dalam format JSON: {"flag": "nilai_flag"}'}; status_code = 400
+        except json.JSONDecodeError:
+            response_body = {'message': 'Body request harus dalam format JSON yang valid.'}; status_code = 400
+        except Exception as e:
+            response_body = {'message': f'Internal server error: {str(e)}'}; status_code = 500
+        return {
+            'statusCode': status_code,
+            'headers': { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            'body': json.dumps(response_body)
+        }
+    ```
+
+7.  **Deploy Kode:** Setelah menempelkan kode, saya klik tombol "Deploy".
+    ![Menekan tombol Deploy Kode Lambda](./lambda-code-deploy.png)
+    ![Notifikasi Deploy Lambda Berhasil](./lambda-deploy-success.png)
+
+### Fase 2: Membuat API Gateway (Endpoint HTTP)
+
+Selanjutnya, saya membuat *endpoint* HTTP publik menggunakan **API Gateway**.
+
+1.  **Mencari Layanan API Gateway:** Kembali ke AWS Console, saya mencari "API Gateway".
+    ![Mencari AWS API Gateway](./apigw-search.png)
+
+2.  **Memulai Pembuatan API:** Di halaman API Gateway, saya klik "Create API".
+    ![Tombol Create API di API Gateway](./apigw-create-button.jpg)
+
+3.  **Memilih Tipe REST API:** Saya memilih tipe **REST API** (Publik) dan klik "Build".
+    ![Memilih tipe REST API](./apigw-select-rest.png)
+
+4.  **Konfigurasi Dasar API:** Saya memilih "New API", memberi nama `FlagCheckerAPI`, deskripsi (opsional), dan membiarkan *Endpoint Type* "Regional", lalu klik "Create API".
+    ![Konfigurasi Dasar API Gateway](./apigw-config-basic.png)
+
+5.  **Membuat Resource:** Di panel *Resources*, saya klik "Actions" > "Create resource".
+    ![Tombol Create Resource](./apigw-create-resource-button.png)
+    Saya memberi nama *resource* `checkflag` dan klik "Create resource".
+    ![Konfigurasi Resource /checkflag](./apigw-config-resource.png)
+
+6.  **Membuat Method:** Dengan *resource* `/checkflag` terpilih, saya klik "Actions" > "Create Method".
+    ![Tombol Create Method](./apigw-create-method-button.png)
+    Saya memilih `POST` dari *dropdown* dan klik tanda centang (✓).
+
+7.  **Konfigurasi Integrasi Lambda:** Pada halaman setup *method* POST:
+    * **Integration type:** `Lambda Function`
+    * **Use Lambda Proxy integration:** Dicentang ✅
+    * **Lambda Function:** Memilih fungsi `flag-checker-api` yang sudah dibuat.
+    * Kemudian klik **Save** dan **OK** pada *pop-up* izin.
+    ![Konfigurasi Tipe Integrasi Method POST](./apigw-config-method-integration-type.png)
+    ![Konfigurasi Pemilihan Fungsi Lambda](./apigw-config-method-lambda-selection.png)
+
+8.  **Deploy API:** Saya klik tombol "Deploy API".
+    ![Tombol Deploy API](./apigw-deploy-button.png)
+    Saya membuat *stage* baru dengan nama `prod` dan klik "Deploy".
+    ![Konfigurasi Stage Deployment](./apigw-config-deploy-stage.png)
+
+9.  **Mendapatkan Invoke URL:** Setelah *deploy*, API Gateway menampilkan **Invoke URL** untuk *stage* `prod`. URL *endpoint* lengkapnya adalah URL ini ditambah `/checkflag`.
+    ![Invoke URL API Gateway](./apigw-invoke-url.png)
+    * **Endpoint URL:** `https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag`
+
+### Fase 3: Pengujian API
+
+Saya menguji *endpoint* API menggunakan `curl` dari terminal:
+
+* **Tes Flag Benar:**
+    ```bash
+    curl -X POST \
+      [https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag](https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag) \
+      -H 'Content-Type: application/json' \
+      -d '{"flag": "CTF{th1s_1s_th3_s3cr3t_fl4g}"}'
+    ```
+    * **Respons:** `{"message": "Flag Benar! Selamat!"}` ✅
+        ![Hasil Test Curl Flag Benar](./test-curl-success.png)
+
+* **Tes Flag Salah:**
+    ```bash
+    curl -X POST \
+      [https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag](https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag) \
+      -H 'Content-Type: application/json' \
+      -d '{"flag": "flag_salah_coba_coba"}'
+    ```
+    * **Respons:** `{"message": "Flag Salah. Coba lagi."}` ✅
+        *(Screenshot tes flag salah opsional)*
+
+**Kesimpulan Proyek 2:** Berhasil membuat dan menguji API *serverless* sederhana menggunakan AWS Lambda dan API Gateway untuk validasi input. Ini menunjukkan pemahaman dasar arsitektur *serverless* di AWS.
