@@ -366,9 +366,9 @@ Saya menguji *endpoint* API menggunakan `curl` dari terminal:
 * **Tes Flag Benar:**
     ```bash
     curl -X POST \
-      [https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag](https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag) \
-      -H 'Content-Type: application/json' \
-      -d '{"flag": "CTF{th1s_1s_th3_s3cr3t_fl4g}"}'
+    https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag \
+    -H 'Content-Type: application/json' \
+    -d '{"flag": "CTF{th1s_1s_th3_s3cr3t_fl4g}"}'
     ```
     * **Respons:** `{"message": "Flag Benar! Selamat!"}` ✅
         ![Hasil Test Curl Flag Benar](./test-curl-success.png)
@@ -376,9 +376,9 @@ Saya menguji *endpoint* API menggunakan `curl` dari terminal:
 * **Tes Flag Salah:**
     ```bash
     curl -X POST \
-      [https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag](https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag) \
-      -H 'Content-Type: application/json' \
-      -d '{"flag": "flag_salah_coba_coba"}'
+    https://447hqjwxwg.execute-api.us-east-1.amazonaws.com/prod/checkflag \
+    -H 'Content-Type: application/json' \
+    -d '{"flag": "flag_salah_coba_coba"}'
     ```
     * **Respons:** `{"message": "Flag Salah. Coba lagi."}` ✅
         ![Hasil Test Curl Flag Salah](./flag-salah.png)
